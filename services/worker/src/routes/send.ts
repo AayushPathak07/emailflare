@@ -1,9 +1,9 @@
 // POST /v1/send
 //
-// Workers version differences vs. Node.js backend:
-//   - SMTP test mode is not supported (nodemailer is Node.js-only).
-//     Both test and live keys go through the Cloudflare Email Sending REST API.
-//     The is_test flag is still stored in email_logs for audit purposes.
+// Test keys (eftest_) never reach the Cloudflare Email Sending API. The rendered
+// message is stored in email_logs (is_test = 1, with html_body/text_body) so it
+// shows up in the admin Test Mailbox, exactly like the Node.js backend does.
+// Live keys (eflive_) are delivered through Cloudflare.
 
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
@@ -112,18 +112,22 @@ app.post('/', zValidator('json', sendSchema), async (c) => {
 
   for (const recipient of toList) {
     try {
-      const cfResult = await sendEmail(
-        {
-          from: body.fromName ? { address: body.from, name: body.fromName } : body.from,
-          to: recipient,
-          subject,
-          html,
-          text,
-          replyTo: body.replyTo,
-        },
-        c.env.CF_API_TOKEN,
-        c.env.CF_ACCOUNT_ID,
-      );
+      // Test keys are captured in the Test Mailbox instead of being delivered.
+      // The response shape is identical to a live send.
+      const cfResult = apiKey.isTest
+        ? { id: crypto.randomUUID() }
+        : await sendEmail(
+            {
+              from: body.fromName ? { address: body.from, name: body.fromName } : body.from,
+              to: recipient,
+              subject,
+              html,
+              text,
+              replyTo: body.replyTo,
+            },
+            c.env.CF_API_TOKEN,
+            c.env.CF_ACCOUNT_ID,
+          );
 
       await emailLogs.insert({
         id: nanoid(),

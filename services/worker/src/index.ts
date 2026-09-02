@@ -26,6 +26,7 @@ import domainsRoutes   from './routes/domains.ts';
 import templatesRoutes from './routes/templates.ts';
 import keysRoutes      from './routes/keys.ts';
 import logsRoutes      from './routes/logs.ts';
+import testEmailsRoutes from './routes/testEmails.ts';
 import statsRoutes     from './routes/stats.ts';
 import cloudflareRoutes from './routes/cloudflare.ts';
 import sendRoutes      from './routes/send.ts';
@@ -106,6 +107,7 @@ admin.route('/domains',    domainsRoutes);
 admin.route('/templates',  templatesRoutes);
 admin.route('/keys',       keysRoutes);
 admin.route('/logs',       logsRoutes);
+admin.route('/test-emails', testEmailsRoutes);
 admin.route('/stats',      statsRoutes);
 admin.route('/cloudflare', cloudflareRoutes);
 
